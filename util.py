@@ -24,6 +24,10 @@ def logistic_func(x__, l_, c, k):
     return l_ / (1 + c * np.exp(-k * x__))
 
 
+def get_ratios_sequence(values_):
+    return np.divide(values_[1:], values_[:-1])
+
+
 def generate_dates_formatter(dates):
     # noinspection PyUnusedLocal
     def formatter(tick_val, *args):

@@ -6,39 +6,24 @@ from matplotlib.ticker import FuncFormatter
 from scipy.optimize import curve_fit
 
 from util import exp_func, logistic_func, generate_dates_formatter, \
-    normalize_dates
+    normalize_dates, get_ratios_sequence
 
 
-# TODO
-def get_growth_factor_data(normalized_values):
-    ratios = []
+def add_growth_factor(ax, values):
+    diffs = np.diff(sorted(set(values)))
+    ratios = get_ratios_sequence(diffs[diffs > 0])
 
-    for x in range(len(normalized_values) - 1):
-        next_ = normalized_values[x + 1]
-        if next_ is np.nan or normalized_values[x] is np.nan \
-                or next_ == normalized_values[x]:
-            continue
-        ratio = next_ / normalized_values[x]
-        ratios.append(ratio)
-        print(ratio)
-
-    x_, y_ = range(len(ratios)), ratios
-    return x_, y_
+    plt.plot(ratios, label="Growth ratio")
+    plt.plot(ratios, "b+")
+    plt.plot(np.ones(len(ratios)), 'r', label="1.0 Threshold")
+    plt.legend()
 
 
-def add_growth_factor(values):
+def add_predictions(ax, timestamps, values, predict_days=30):
+    ax.xaxis.set_major_formatter(FuncFormatter(
+        generate_dates_formatter(timestamps)))
 
-    x, y = get_growth_factor_data(values)
-    z = np.polyfit(x, y, 3)
-    p = np.poly1d(z)
-
-    plt.scatter(x, y)
-    plt.plot(x, p(x), "r")
-    plt.title("Growth factor trend")
-
-
-def add_predictions(ax, dates, values, predict_days=30):
-    dates = normalize_dates(dates)
+    dates = normalize_dates(timestamps)
     x_continue = np.linspace(int(min(dates)),
                              int(max(dates)) + predict_days - 1,
                              num=int(max(dates)) + predict_days)
@@ -61,22 +46,24 @@ def add_predictions(ax, dates, values, predict_days=30):
              label="Predicted Exponential outcome")
     plt.plot(x_continue, logistic_func(x_continue, *popt_log), 'g-',
              label="Predicted Logistics outcome")
+    plt.legend()
 
 
 def plot_data(data: Tuple[List, List]):
     x, y = data
 
     fig = plt.figure(constrained_layout=True)
-    fig.set_size_inches(8, 8)
+    fig.set_size_inches(10, 6)
     gs = fig.add_gridspec(nrows=2, ncols=1, figure=fig, hspace=.02)
 
     ax = fig.add_subplot(gs[0, 0])
-    ax.axes.get_xaxis().set_visible(False)
-    # add_growth_factor(values) TODO
+    plt.title("Growth ratio")
+    ax.grid(True)
+    add_growth_factor(ax, y)
 
     ax = fig.add_subplot(gs[1, 0])
+    plt.title("Total cases cumulative")
     ax.grid(True)
-    ax.xaxis.set_major_formatter(FuncFormatter(generate_dates_formatter(x)))
     add_predictions(ax, x, y)
 
     plt.show()
