@@ -1,8 +1,7 @@
 from base import DEFAULT_COUNTRY
-from download import download_reports
-from parse import parse_reports
+from fetch import retrieve_axises
 from plot import plot_data
-from util import load
+
 
 if __name__ == "__main__":
     import argparse
@@ -13,9 +12,7 @@ if __name__ == "__main__":
                         help='report by country')
     args = parser.parse_args()
 
-    download_reports()
-    parse_reports(args.country)
+    data = retrieve_axises(args.country)
 
-    report = load(args.country)
     print(f"Analysing {args.country} data")
-    plot_data(report)
+    plot_data(data)

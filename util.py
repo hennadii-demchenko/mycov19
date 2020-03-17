@@ -1,43 +1,39 @@
-import io
-import os
-import pickle
+from datetime import datetime, timedelta
 
-import requests
-from pdfminer.converter import TextConverter
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.pdfpage import PDFPage
-
-from base import REPORTS_DIR, STORED_DIR
+from base import DATA_TIMESTAMP, ATTRIBUTES, TOTAL_CASES, NEW_CASES
+import numpy as np
 
 
-def date_from_report(report):
-    from datetime import datetime
-    return datetime.strptime(report.name.split('-')[0], '%Y%m%d')
+def get_date_timestamp(sample_):
+    return sample_[ATTRIBUTES][DATA_TIMESTAMP]
 
 
-def get_report_text(report):
-    resource_manager = PDFResourceManager()
-    with io.StringIO() as f:
-        converter = TextConverter(resource_manager, f)
-        page_interpreter = PDFPageInterpreter(resource_manager, converter)
-
-        with open(report.absolute(), 'rb') as fh:
-            for p in PDFPage.get_pages(
-                    fh, caching=True, check_extractable=True):
-                page_interpreter.process_page(p)
-            text = f.getvalue()
-
-        converter.close()
-
-    return text if text else [""]
+def get_total(sample_):
+    return sample_[ATTRIBUTES][TOTAL_CASES]
 
 
-def load(country: str) -> dict:
-    stored = STORED_DIR / country
-    return pickle.load(open(stored.absolute(), 'rb')) \
-        if os.path.exists(stored) else {}
+def get_new(sample_):
+    return sample_[ATTRIBUTES][NEW_CASES]
 
 
-def dump(country: str, new_data: dict):
-    stored = STORED_DIR / country
-    pickle.dump(new_data, open(stored, 'wb'))
+def exp_func(x, a, b, c):
+    return a * np.exp(b * x) + c
+
+
+def logistic_func(x__, l_, c, k):
+    return l_ / (1 + c * np.exp(-k * x__))
+
+
+def generate_dates_formatter(dates):
+    # noinspection PyUnusedLocal
+    def formatter(tick_val, *args):
+        return datetime.strftime(datetime.fromtimestamp(min(dates) / 1000) +
+                                 timedelta(days=int(tick_val)), '%Y-%m-%d')
+    return formatter
+
+
+def normalize_dates(dates):
+    dates = [datetime.fromtimestamp(ts / 1000) for ts in dates]
+
+    return np.array([0, *np.cumsum(
+        np.diff(dates).astype('timedelta64[D]') / np.timedelta64(1, 'D'))])
