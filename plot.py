@@ -2,11 +2,11 @@ from typing import List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import FuncFormatter, MultipleLocator, FixedLocator
+from matplotlib.ticker import FuncFormatter, FixedLocator
 from scipy.optimize import curve_fit
 
-from util import exp_func, logistic_func, generate_dates_formatter, \
-    normalize_dates, get_ratios_sequence
+from util import exp_func, generate_dates_formatter, \
+    normalize_dates, get_ratios_sequence, sigmoid_func, annotate_values
 
 
 def plot_raw(ax, timestamps, values):
@@ -19,11 +19,7 @@ def plot_raw(ax, timestamps, values):
 
     plt.scatter(dates, values)
     plt.plot(values)
-    for i, text in enumerate(values):
-        if i > 0 and values[i] > values[i - 1]:
-            plt.annotate(values[i], (dates[i], values[i]), ha='center',
-                         textcoords="offset points", xytext=(-20, 20),
-                         arrowprops=dict(arrowstyle='simple', lw=.3, ls='--'))
+    annotate_values(values, dates)
 
 
 def add_growth_factor(ax, values):
@@ -45,26 +41,26 @@ def add_predictions(ax, timestamps, values, predict_days=14):
                              int(max(dates)) + predict_days - 1,
                              num=int(max(dates)) + predict_days)
     ax.xaxis.set_minor_locator(FixedLocator(x_continue))
-
-    popt_exp, _ = curve_fit(exp_func, dates, values)
-    popt_log, _ = curve_fit(logistic_func, dates, values, p0=[5, 1, 25],
-                            bounds=[1e-2, 1e10])
-
     plt.xlim(-2, max(dates) + 0.8 * predict_days)
     plt.ylim(-33, 6.6 * np.max(values))
 
+    popt_exp, _ = curve_fit(exp_func, dates, values,
+                            p0=[1, 10e-1, -4])
+    print(popt_exp)
+    y_exp = exp_func(x_continue, *popt_exp)
+
+    popt_log, _ = curve_fit(sigmoid_func, dates, values,
+                            p0=[max(y_exp), 1, 1, 1])
+    print(popt_log)
+
+    y_log = sigmoid_func(x_continue, *popt_log)
+
     plt.scatter(dates, values)
-    for i, text in enumerate(values):
-        if i > 0 and values[i] > values[i - 1]:
-            plt.annotate(values[i], (dates[i], values[i]), ha='center',
-                         textcoords="offset points", xytext=(-20, 20),
-                         arrowprops=dict(arrowstyle='simple', lw=.3, ls='--'))
+    annotate_values(values, dates)
 
     plt.plot(dates, values, 'b+', label="Recorded data")
-    plt.plot(x_continue, exp_func(x_continue, *popt_exp), 'r-',
-             label="Predicted Exponential outcome")
-    plt.plot(x_continue, logistic_func(x_continue, *popt_log), 'g-',
-             label="Predicted Logistics outcome")
+    plt.plot(x_continue, y_exp, 'r-', label="Predicted Exponential outcome")
+    plt.plot(x_continue, y_log, 'g-', label="Predicted Logistics outcome")
     plt.legend()
 
 

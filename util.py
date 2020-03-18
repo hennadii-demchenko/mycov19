@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from base import DATA_TIMESTAMP, ATTRIBUTES, TOTAL_CASES, NEW_CASES
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def get_date_timestamp(sample_):
@@ -14,6 +15,18 @@ def get_total(sample_):
 
 def get_new(sample_):
     return sample_[ATTRIBUTES][NEW_CASES]
+
+
+def annotate_values(values, dates):
+    for i, text in enumerate(values):
+        if i > 0 and values[i] > values[i - 1]:
+            plt.annotate(values[i], (dates[i], values[i]), ha='center',
+                         textcoords="offset points", xytext=(-20, 20),
+                         arrowprops=dict(arrowstyle='simple', lw=.3, ls='--'))
+
+
+def sigmoid_func(x, a, b, c, d):
+    return a / (1. + np.exp(-c * (x-d))) + b
 
 
 def exp_func(x, a, b, c):
