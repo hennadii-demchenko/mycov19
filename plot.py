@@ -6,7 +6,7 @@ from matplotlib.ticker import FuncFormatter, FixedLocator
 from scipy.optimize import curve_fit
 
 from util import exp_func, generate_dates_formatter, \
-    normalize_dates, get_ratios_sequence, sigmoid_func, annotate_values
+    normalize_dates, get_ratios_sequence, logistic_func, annotate_values
 
 
 def plot_raw(ax, timestamps, values):
@@ -34,33 +34,31 @@ def add_growth_factor(ax, values):
 
 def add_predictions(ax, timestamps, values, predict_days=14):
     dates = normalize_dates(timestamps)
-
-    ax.xaxis.set_major_formatter(
-        FuncFormatter(generate_dates_formatter(timestamps)))
     x_continue = np.linspace(int(min(dates)),
                              int(max(dates)) + predict_days - 1,
                              num=int(max(dates)) + predict_days)
+
+    ax.xaxis.set_major_formatter(
+        FuncFormatter(generate_dates_formatter(timestamps)))
     ax.xaxis.set_minor_locator(FixedLocator(x_continue))
     plt.xlim(-2, max(dates) + 0.8 * predict_days)
     plt.ylim(-33, 6.6 * np.max(values))
 
-    popt_exp, _ = curve_fit(exp_func, dates, values,
-                            p0=[1, 10e-1, -4])
-    print(popt_exp)
-    y_exp = exp_func(x_continue, *popt_exp)
+    popt_exp, _ = curve_fit(exp_func, dates, values, maxfev=100_000)
+    popt_log, _ = curve_fit(logistic_func, dates, values,
+                            p0=[1e7, 10, .25, 55], maxfev=100_000)
+    [print(p) for p in [popt_exp, popt_log]]
 
-    popt_log, _ = curve_fit(sigmoid_func, dates, values,
-                            p0=[max(y_exp), 1, 1, 1])
-    print(popt_log)
-
-    y_log = sigmoid_func(x_continue, *popt_log)
+    y_exp, y_log = [f(x_continue, *opt) for f, opt in
+                    zip([exp_func, logistic_func],
+                        [popt_exp, popt_log])]
 
     plt.scatter(dates, values)
     annotate_values(values, dates)
 
     plt.plot(dates, values, 'b+', label="Recorded data")
     plt.plot(x_continue, y_exp, 'r-', label="Predicted Exponential outcome")
-    plt.plot(x_continue, y_log, 'g-', label="Predicted Logistics outcome")
+    plt.plot(x_continue, y_log, 'g--', label="Predicted Logistics outcome")
     plt.legend()
 
 
@@ -83,7 +81,6 @@ def plot_data(data: Tuple[List, List]):
     try:
         add_predictions(ax, x, y)
     except Exception:
-        ax = fig.add_subplot(gs[1, 0])
         plot_raw(ax, x, y)
 
     plt.show()

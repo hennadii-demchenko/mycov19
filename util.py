@@ -25,16 +25,12 @@ def annotate_values(values, dates):
                          arrowprops=dict(arrowstyle='simple', lw=.3, ls='--'))
 
 
-def sigmoid_func(x, a, b, c, d):
+def logistic_func(x, a, b, c, d):
     return a / (1. + np.exp(-c * (x-d))) + b
 
 
-def exp_func(x, a, b, c):
-    return a * np.exp(b * x) + c
-
-
-def logistic_func(x__, l_, c, k):
-    return l_ / (1 + c * np.exp(-k * x__))
+def exp_func(x, a, b, c, d):
+    return a * np.exp(b * (x-d)) + c
 
 
 def get_ratios_sequence(values_):
