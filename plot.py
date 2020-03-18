@@ -60,18 +60,21 @@ def add_predictions(ax, timestamps, values, predict_days=14):
     plt.plot(x_continue, y_exp, 'r-', label="Predicted Exponential outcome")
     plt.plot(x_continue, y_log, 'g--', label="Predicted Logistics outcome")
     plt.legend()
+и
 
-
-def plot_data(data: Tuple[List, List]):
+def plot_data(country, data: Tuple[List, List]):
     x, y = data
 
     fig = plt.figure(constrained_layout=True)
+    fig.suptitle(f"{country.capitalize()} analytics",
+                 fontsize=12, x=0.9, y=.995)
     fig.set_size_inches(10, 6)
     gs = fig.add_gridspec(nrows=2, ncols=1, figure=fig, hspace=.02)
 
     ax = fig.add_subplot(gs[0, 0])
     plt.title("Growth ratio")
     ax.grid(True)
+    ax.axes.get_xaxis().set_visible(False)
     add_growth_factor(ax, y)
 
     ax = fig.add_subplot(gs[1, 0])

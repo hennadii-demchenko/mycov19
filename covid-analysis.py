@@ -15,4 +15,4 @@ if __name__ == "__main__":
     data = retrieve_axises(args.country)
 
     print(f"Analysing {args.country} data")
-    plot_data(data)
+    plot_data(args.country, data)
