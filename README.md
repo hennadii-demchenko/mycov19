@@ -1,7 +1,7 @@
 # mycov19
 
 Requirements:
-- `python3.6`
+- `>= python3.6`
 
 Setup:
 
