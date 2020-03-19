@@ -36,7 +36,8 @@ def add_growth_factor(ax, timestamps, values, predict_days=PREDICT_DAYS):
     non_zero_dates = np.array(dates)[non_zero_values > 0]
     non_zero_values = non_zero_values[non_zero_values > 0]
     ratios = [0, *get_ratios_sequence(non_zero_values)]
-    plt.ylim(-.1, max(ratios) + 1)
+    annotate_values(ratios, non_zero_dates, floats=True)
+    plt.ylim(-.1, max(ratios) + 3)
 
     plt.plot(non_zero_dates, ratios, "bo", label="Growth ratios")
     plt.plot(non_zero_dates, ratios, "b")

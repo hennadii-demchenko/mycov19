@@ -17,12 +17,13 @@ def get_new(sample_):
     return sample_[ATTRIBUTES][NEW_CASES]
 
 
-def annotate_values(values, dates):
-    for i, text in enumerate(values):
-        if i > 0 and values[i] > values[i - 1]:
-            plt.annotate(values[i], (dates[i], values[i]), ha='center',
-                         textcoords="offset points", xytext=(-20, 20),
-                         arrowprops=dict(arrowstyle='simple', lw=.3, ls='--'))
+def annotate_values(values, dates, floats=False):
+    ys = [50, 10, 30]
+    for i, text in enumerate(values[1:]):
+        template = '%.1f' if floats else '%s'
+        plt.annotate(template % values[i], (dates[i], values[i]), ha='center',
+                     textcoords="offset points", xytext=(-5, ys[i % 3]),
+                     arrowprops=dict(arrowstyle='-|>', lw=.3, ls='--'))
 
 
 def logistic_func(x, a, b, c, d):
