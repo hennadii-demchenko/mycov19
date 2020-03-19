@@ -8,40 +8,49 @@ from scipy.optimize import curve_fit
 from util import exp_func, generate_dates_formatter, \
     normalize_dates, get_ratios_sequence, logistic_func, annotate_values
 
+PREDICT_DAYS = 14
 
-def plot_raw(ax, timestamps, values):
-    plt.grid(True, which='both')
+
+def setup_plot(ax, timestamps, locate_dates, predict_days=PREDICT_DAYS):
     dates = normalize_dates(timestamps)
-
+    plt.grid(True, which='both')
     ax.xaxis.set_major_formatter(
         FuncFormatter(generate_dates_formatter(timestamps)))
-    ax.xaxis.set_minor_locator(FixedLocator(dates))
+    ax.xaxis.set_minor_locator(FixedLocator(locate_dates))
+    plt.xlim(min(dates) - 1, max(dates) + 0.8 * predict_days)
 
+
+def plot_raw(ax, timestamps, values):
+    dates = normalize_dates(timestamps)
+    setup_plot(ax, timestamps, dates)
     plt.scatter(dates, values)
     plt.plot(values)
     annotate_values(values, dates)
 
 
-def add_growth_factor(ax, values):
-    diffs = np.diff(sorted(set(values)))
-    ratios = get_ratios_sequence(diffs[diffs > 0])
+def add_growth_factor(ax, timestamps, values, predict_days=PREDICT_DAYS):
+    dates = normalize_dates(timestamps)
+    setup_plot(ax, timestamps, dates)
 
-    plt.plot(ratios, label="Growth ratio")
-    plt.plot(ratios, "b+")
-    plt.plot(np.ones(len(ratios)), 'r', label="1.0 Threshold")
+    non_zero_values = np.array(values)
+    non_zero_dates = np.array(dates)[non_zero_values > 0]
+    non_zero_values = non_zero_values[non_zero_values > 0]
+    ratios = [0, *get_ratios_sequence(non_zero_values)]
+    plt.ylim(-.1, max(ratios) + 1)
+
+    plt.plot(non_zero_dates, ratios, "bo", label="Growth ratios")
+    plt.plot(non_zero_dates, ratios, "b")
+    plt.plot(non_zero_dates, np.ones(len(non_zero_dates)), 'r',
+             label="1.0 Threshold", alpha=0.6)
     plt.legend()
 
 
-def add_predictions(ax, timestamps, values, predict_days=14):
+def add_predictions(ax, timestamps, values, predict_days=PREDICT_DAYS):
     dates = normalize_dates(timestamps)
     x_continue = np.linspace(int(min(dates)),
                              int(max(dates)) + predict_days - 1,
                              num=int(max(dates)) + predict_days)
-
-    ax.xaxis.set_major_formatter(
-        FuncFormatter(generate_dates_formatter(timestamps)))
-    ax.xaxis.set_minor_locator(FixedLocator(x_continue))
-    plt.xlim(-2, max(dates) + 0.8 * predict_days)
+    setup_plot(ax, timestamps, x_continue)
     plt.ylim(-33, 6.6 * np.max(values))
 
     popt_exp, _ = curve_fit(exp_func, dates, values, maxfev=100_000)
@@ -60,10 +69,10 @@ def add_predictions(ax, timestamps, values, predict_days=14):
     plt.plot(x_continue, y_exp, 'r-', label="Predicted Exponential outcome")
     plt.plot(x_continue, y_log, 'g--', label="Predicted Logistics outcome")
     plt.legend()
-и
 
-def plot_data(country, data: Tuple[List, List]):
-    x, y = data
+
+def plot_data(country, data: Tuple[List, List, List]):
+    x, totals, new_cases = data
 
     fig = plt.figure(constrained_layout=True)
     fig.suptitle(f"{country.capitalize()} analytics",
@@ -73,17 +82,14 @@ def plot_data(country, data: Tuple[List, List]):
 
     ax = fig.add_subplot(gs[0, 0])
     plt.title("Growth ratio")
-    ax.grid(True)
-    ax.axes.get_xaxis().set_visible(False)
-    add_growth_factor(ax, y)
+    add_growth_factor(ax, x, new_cases)
 
     ax = fig.add_subplot(gs[1, 0])
     plt.title("Total cases cumulative")
-    ax.grid(True, which='both')
     # noinspection PyBroadException
     try:
-        add_predictions(ax, x, y)
+        add_predictions(ax, x, totals)
     except Exception:
-        plot_raw(ax, x, y)
+        plot_raw(ax, x, totals)
 
     plt.show()

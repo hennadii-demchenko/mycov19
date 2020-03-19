@@ -34,7 +34,12 @@ def exp_func(x, a, b, c, d):
 
 
 def get_ratios_sequence(values_):
-    return np.divide(values_[1:], values_[:-1])
+    data = np.array(values_)
+    data = data[data > 0]
+    ratios = np.divide(data[1:], data[:-1])
+    ratios[np.isnan(ratios)] = 0
+    ratios[np.abs(ratios) == np.inf] = 0
+    return ratios
 
 
 def generate_dates_formatter(dates):

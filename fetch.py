@@ -16,18 +16,8 @@ def retrieve_from_rest(country: str):
 
 def retrieve_axises(country: str):
     data = retrieve_from_rest(country)
-    if not len(data):
+    if not data:
         return [], []
-
-    data, dates, total_cases = iter(data), [], []
-
-    while True:
-        try:
-            sample = next(data)
-            dates.append(get_date_timestamp(sample))
-            total_cases.append(get_total(sample))
-        except StopIteration:
-            # noinspection PyUnboundLocalVariable
-            total_cases[-1] = total_cases[-1] + get_new(sample)
-            break
-    return dates, total_cases
+    else:
+        return zip(*[(get_date_timestamp(x), get_total(x), get_new(x))
+                     for x in data])
