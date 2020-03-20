@@ -18,8 +18,8 @@ def get_new(sample_):
 
 
 def annotate_values(values, dates, floats=False):
-    ys = [50, 10, 30]
-    for i, text in enumerate(values[1:]):
+    ys = [30, 10, 50]
+    for i, text in enumerate(values):
         template = '%.1f' if floats else '%s'
         plt.annotate(template % values[i], (dates[i], values[i]), ha='center',
                      textcoords="offset points", xytext=(-5, ys[i % 3]),

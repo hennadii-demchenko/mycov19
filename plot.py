@@ -54,7 +54,8 @@ def add_predictions(ax, timestamps, values, predict_days=PREDICT_DAYS):
     setup_plot(ax, timestamps, x_continue)
     plt.ylim(-33, 6.6 * np.max(values))
 
-    popt_exp, _ = curve_fit(exp_func, dates, values, maxfev=100_000)
+    popt_exp, _ = curve_fit(exp_func, dates, values,
+                            p0=[1, 1, 1, -1], maxfev=100_000)
     popt_log, _ = curve_fit(logistic_func, dates, values,
                             p0=[1e7, 10, .25, 55], maxfev=100_000)
     [print(p) for p in [popt_exp, popt_log]]
