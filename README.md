@@ -11,5 +11,7 @@ pip install -r requirements.txt
 
 Usage:
 ```shell script
-python covid-analysis.py --country=YouNameIt
+python covid-analysis.py --country=%countryname%
+# or
+python covid-analysis.py --code=%countrycode%
 ```

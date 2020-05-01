@@ -1,20 +1,20 @@
 from datetime import datetime, timedelta
 
-from base import DATA_TIMESTAMP, ATTRIBUTES, TOTAL_CASES, NEW_CASES
+from base import DATE, CONFIRMED, NEW_CONFIRMED
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 def get_date_timestamp(sample_):
-    return sample_[ATTRIBUTES][DATA_TIMESTAMP]
+    return int(datetime.strptime(sample_[DATE], '%Y-%m-%d').timestamp())
 
 
 def get_total(sample_):
-    return sample_[ATTRIBUTES][TOTAL_CASES]
+    return sample_[CONFIRMED]
 
 
 def get_new(sample_):
-    return sample_[ATTRIBUTES][NEW_CASES]
+    return sample_[NEW_CONFIRMED]
 
 
 def annotate_values(values, dates, floats=False):
@@ -46,13 +46,13 @@ def get_ratios_sequence(values_):
 def generate_dates_formatter(dates):
     # noinspection PyUnusedLocal
     def formatter(tick_val, *args):
-        return datetime.strftime(datetime.fromtimestamp(min(dates) / 1000) +
+        return datetime.strftime(datetime.fromtimestamp(min(dates)) +
                                  timedelta(days=int(tick_val)), '%Y-%m-%d')
     return formatter
 
 
 def normalize_dates(dates):
-    dates = [datetime.fromtimestamp(ts / 1000) for ts in dates]
+    dates = [datetime.fromtimestamp(ts) for ts in dates]
 
     return np.array([0, *np.cumsum(
         np.diff(dates).astype('timedelta64[D]') / np.timedelta64(1, 'D'))])

@@ -1,7 +1,7 @@
 import json
 import requests
 
-from base import get_rest_url, FEATURES
+from base import get_rest_url, TIMELINE, DATA_FIELD
 from util import get_date_timestamp, get_total, get_new
 
 
@@ -11,13 +11,19 @@ def retrieve_from_rest(country: str):
         raise ConnectionError("unable to get json report")
 
     json_response = json.loads(response.content)
-    return json_response[FEATURES]
+    return json_response[DATA_FIELD][TIMELINE]
 
 
 def retrieve_axises(country: str):
     data = retrieve_from_rest(country)
+    ts, totals, new = [], [], []
+
     if not data:
-        return [], []
-    else:
-        return zip(*[(get_date_timestamp(x), get_total(x), get_new(x))
-                     for x in data])
+        return [], [], []
+
+    for x in data:
+        ts.append(get_date_timestamp(x))
+        totals.append(get_total(x))
+        new.append(get_new(x))
+    # reversed new -> old for this API
+    return ts[::-1], totals[::-1], new[::-1]

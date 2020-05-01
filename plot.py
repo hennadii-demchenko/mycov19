@@ -77,7 +77,7 @@ def plot_data(country, data: Tuple[List, List, List]):
     x, totals, new_cases = data
 
     fig = plt.figure(constrained_layout=True)
-    fig.suptitle(f"{country.capitalize()} analytics",
+    fig.suptitle(f"{country} analytics",
                  fontsize=12, x=0.9, y=.995)
     fig.set_size_inches(10, 6)
     gs = fig.add_gridspec(nrows=2, ncols=1, figure=fig, hspace=.02)
