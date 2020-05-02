@@ -3,8 +3,10 @@ TIMELINE = 'timeline'
 REST_HOST = "http://corona-api.com"
 REST_WHERE_TEMPLATE = "/countries/%s"
 DATA_FIELD = 'data'
+POPULATION_FIELD = 'population'
 DATE = 'date'
 CONFIRMED = 'confirmed'
+DECEASED = 'deaths'
 NEW_CONFIRMED = 'new_confirmed'
 
 

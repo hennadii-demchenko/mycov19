@@ -5,10 +5,13 @@ import numpy as np
 from matplotlib.ticker import FuncFormatter, FixedLocator
 from scipy.optimize import curve_fit
 
+from analyze import fit_model_to_data
+from fetch import FetchResult
+from model import model, PARAMS_ORDER
 from util import exp_func, generate_dates_formatter, \
     normalize_dates, get_ratios_sequence, logistic_func, annotate_values
 
-PREDICT_DAYS = 14
+PREDICT_DAYS = 500
 
 
 def setup_plot(ax, timestamps, locate_dates, predict_days=PREDICT_DAYS):
@@ -52,7 +55,6 @@ def add_predictions(ax, timestamps, values, predict_days=PREDICT_DAYS):
                              int(max(dates)) + predict_days - 1,
                              num=int(max(dates)) + predict_days)
     setup_plot(ax, timestamps, x_continue)
-    plt.ylim(-33, 6.6 * np.max(values))
 
     popt_exp, _ = curve_fit(exp_func, dates, values,
                             p0=[1, 1, 1, -1], maxfev=100_000)
@@ -73,25 +75,57 @@ def add_predictions(ax, timestamps, values, predict_days=PREDICT_DAYS):
     plt.legend()
 
 
-def plot_data(country, data: Tuple[List, List, List]):
-    x, totals, new_cases = data
+def plot_data(country, data: FetchResult):
+    ts, totals, new_cases, total_deceased = \
+        data.timestamps, data.totals, data.new_cases, data.total_deceased
 
-    fig = plt.figure(constrained_layout=True)
-    fig.suptitle(f"{country} analytics",
-                 fontsize=12, x=0.9, y=.995)
-    fig.set_size_inches(10, 6)
-    gs = fig.add_gridspec(nrows=2, ncols=1, figure=fig, hspace=.02)
+    fit_by = PARAMS_ORDER.index('infected')
+    fitted_params = fit_model_to_data(totals, data.population, fit_by)
+    print(fitted_params.best_values)
 
-    ax = fig.add_subplot(gs[0, 0])
-    plt.title("Growth ratio")
-    add_growth_factor(ax, x, new_cases)
+    # fig = plt.figure(constrained_layout=True)
+    # fig.suptitle(f"{country} analytics",
+    #              fontsize=12, x=0.9, y=.995)
+    # fig.set_size_inches(10, 6)
+    # gs = fig.add_gridspec(nrows=1, ncols=1, figure=fig, hspace=.02)
+    # ax = fig.add_subplot(gs[0, 0])
 
-    ax = fig.add_subplot(gs[1, 0])
-    plt.title("Total cases cumulative")
-    # noinspection PyBroadException
-    try:
-        add_predictions(ax, x, totals)
-    except Exception:
-        plot_raw(ax, x, totals)
+    # dates = normalize_dates(ts)
+    # x_continue = np.linspace(int(min(dates)),
+    #                          int(max(dates)) + PREDICT_DAYS - 1,
+    #                          int(max(dates)) + PREDICT_DAYS)
+    # setup_plot(ax, ts, x_continue)
+    # fitted_params.plot_fit(datafmt='-')
 
+    # x, susceptible, exposed, infected, critical, recovered, deceased = \
+    #     model(len(totals) + PREDICT_DAYS, data.population, **guessed)
+
+    fitted_params.plot_fit()
+    # plt.scatter(dates, total_deceased,
+    # marker='x', label="Empirical deceased")
+    # plt.plot(x, susceptible, label="Predicted susceptible")
+    # plt.plot(x, infected, label="Predicted infected")
+    # plt.plot(x, exposed, label="Predicted exposed")
+    # plt.plot(x, critical, label="Predicted critical")
+    # plt.plot(x, recovered, label="Predicted recovered")
+    # plt.plot(x, deceased, label="Predicted deceased")
+    # plt.legend()
     plt.show()
+    foo = 1
+
+    #
+    # gs = fig.add_gridspec(nrows=2, ncols=1, figure=fig, hspace=.02)
+    #
+    # ax = fig.add_subplot(gs[0, 0])
+    # plt.title("Growth ratio")
+    # add_growth_factor(ax, x, new_cases)
+    #
+    # ax = fig.add_subplot(gs[1, 0])
+    # plt.title("Total cases cumulative")
+    # # noinspection PyBroadException
+    # try:
+    #     add_predictions(ax, x, totals)
+    # except Exception:
+    #     plot_raw(ax, x, totals)
+    #
+    # plt.show()

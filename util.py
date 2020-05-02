@@ -1,12 +1,16 @@
 from datetime import datetime, timedelta
 
-from base import DATE, CONFIRMED, NEW_CONFIRMED
+from base import DATE, CONFIRMED, NEW_CONFIRMED, DECEASED
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 def get_date_timestamp(sample_):
     return int(datetime.strptime(sample_[DATE], '%Y-%m-%d').timestamp())
+
+
+def get_total_deceased(sample_):
+    return sample_[DECEASED]
 
 
 def get_total(sample_):
